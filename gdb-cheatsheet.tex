@@ -1,0 +1,442 @@
+\documentclass[10pt,landscape,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[landscape]{geometry}
+\usepackage{multicol}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% Page setup
+\geometry{top=0.5cm,left=0.5cm,right=0.5cm,bottom=0.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+% Colors
+\definecolor{sectioncolor}{RGB}{231,76,60}
+\definecolor{codecolor}{RGB}{44,62,80}
+\definecolor{examplecolor}{RGB}{230,126,34}
+\definecolor{bgcolor}{RGB}{236,240,241}
+
+% Section formatting
+\titleformat{\section}{\large\bfseries\color{sectioncolor}}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{1ex}{0.5ex}
+
+% Code listing style
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{bgcolor},
+    frame=single,
+    breaklines=true,
+    xleftmargin=2pt,
+    xrightmargin=2pt,
+    aboveskip=2pt,
+    belowskip=2pt
+}
+
+\begin{document}
+
+\begin{center}
+    {\Huge\bfseries\color{sectioncolor} GDB \& pwndbg Cheat Sheet}\\
+    \vspace{0.2cm}
+    {\large GNU Debugger for binary exploitation and reverse engineering}
+\end{center}
+
+\begin{multicols}{3}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{1.5em}
+
+\section*{Starting GDB}
+\begin{lstlisting}
+# Start with binary
+gdb ./binary
+gdb -q ./binary          # Quiet mode
+
+# With arguments
+gdb --args ./bin arg1 arg2
+
+# Attach to process
+gdb -p <pid>
+gdb attach <pid>
+
+# Run with input
+gdb ./binary
+(gdb) run < input.txt
+(gdb) run $(python -c 'print("A"*100)')
+\end{lstlisting}
+
+\section*{Basic Commands}
+\begin{lstlisting}
+# Running
+run [args]               # Start program
+r                        # Short form
+start                    # Run and break at main
+continue                 # Continue execution
+c                        # Short form
+kill                     # Kill process
+quit / q                 # Exit GDB
+
+# Stepping
+next / n                 # Step over (next line)
+step / s                 # Step into (enter function)
+nexti / ni               # Step over instruction
+stepi / si               # Step into instruction
+finish                   # Run until return
+\end{lstlisting}
+
+\section*{Breakpoints}
+\begin{lstlisting}
+# Set breakpoints
+break main               # Break at function
+b *0x08048400           # Break at address
+break *main+10          # Offset from symbol
+break file.c:42         # Break at line
+break vuln if $eax==0   # Conditional
+
+# Manage breakpoints
+info breakpoints        # List all
+i b                     # Short form
+delete 1                # Delete breakpoint 1
+delete                  # Delete all
+disable 1               # Disable breakpoint
+enable 1                # Enable breakpoint
+clear function          # Clear at function
+\end{lstlisting}
+
+\section*{Examining Memory}
+\begin{lstlisting}
+# Examine memory
+x/NFU address           # Examine N items
+# N = count, F = format, U = unit
+
+# Format (F):
+x/x    # Hexadecimal
+x/d    # Decimal
+x/u    # Unsigned decimal
+x/o    # Octal
+x/t    # Binary
+x/c    # Character
+x/s    # String
+x/i    # Instruction (disassemble)
+
+# Unit size (U):
+b      # Byte (1 byte)
+h      # Halfword (2 bytes)
+w      # Word (4 bytes)
+g      # Giant (8 bytes)
+
+# Examples
+x/20x $esp              # 20 hex words at ESP
+x/10i $eip              # 10 instructions at EIP
+x/s 0x08048000          # String at address
+x/20gx $rsp             # 20 qwords (64-bit)
+\end{lstlisting}
+
+\section*{Registers (32-bit)}
+\begin{lstlisting}
+# View registers
+info registers          # All registers
+i r                     # Short form
+info registers eax      # Specific register
+
+# Individual registers
+p $eax                  # Print EAX
+p/x $eip               # Print EIP in hex
+set $eax = 0           # Set EAX to 0
+
+# Common 32-bit registers
+$eax                    # Accumulator
+$ebx                    # Base
+$ecx                    # Counter
+$edx                    # Data
+$esi                    # Source index
+$edi                    # Destination index
+$ebp                    # Base pointer
+$esp                    # Stack pointer
+$eip                    # Instruction pointer
+\end{lstlisting}
+
+\section*{Registers (64-bit)}
+\begin{lstlisting}
+# 64-bit registers
+$rax, $rbx, $rcx, $rdx
+$rsi, $rdi              # Args 1 & 2
+$rbp, $rsp, $rip
+$r8 - $r15              # Additional regs
+
+# EFLAGS
+$eflags
+info registers eflags
+\end{lstlisting}
+
+\section*{Stack Operations}
+\begin{lstlisting}
+# View stack
+x/20wx $esp             # 20 words from ESP
+x/20gx $rsp             # 20 qwords from RSP
+info frame              # Current frame info
+backtrace / bt          # Call stack
+bt full                 # With local vars
+
+# Stack frame
+frame 0                 # Select frame
+up / down               # Move up/down frames
+info args               # Function arguments
+info locals             # Local variables
+\end{lstlisting}
+
+\section*{Disassembly}
+\begin{lstlisting}
+# Disassemble
+disassemble main        # Disasm function
+disas main              # Short form
+disas                   # Current function
+disas 0x08048400        # At address
+disas main, main+50     # Range
+
+# Show context
+set disassembly-flavor intel
+disas /r main           # With raw bytes
+x/10i $eip              # Next 10 instructions
+\end{lstlisting}
+
+\section*{Searching Memory}
+\begin{lstlisting}
+# Find patterns
+find /b 0x08048000, 0x08049000, 0x41
+find &system, +9999999, "/bin/sh"
+search-pattern "/bin/sh"
+
+# Search in sections
+search-pattern "flag{" readable
+
+# grep for strings
+grep flag
+\end{lstlisting}
+
+\section*{Info Commands}
+\begin{lstlisting}
+# Information
+info functions          # List functions
+info variables          # List variables
+info breakpoints        # List breakpoints
+info registers          # List registers
+info frame              # Stack frame info
+info proc mappings      # Memory mappings
+info files              # Files and sections
+info symbol 0x8048000   # Symbol at address
+
+# Symbols
+p system                # Address of system
+p &system
+\end{lstlisting}
+
+\section*{pwndbg Commands}
+\begin{lstlisting}
+# Context view
+context                 # Show context
+context reg             # Only registers
+context stack           # Only stack
+context code            # Only disassembly
+
+# Memory search
+search "/bin/sh"
+search -t string "flag"
+search -t pointer 0x08048000
+
+# ROP gadgets
+ropper                  # Find ROP gadgets
+ropgadget
+
+# Cyclic pattern
+cyclic 200              # Generate pattern
+cyclic -l 0x61616162    # Find offset
+
+# Heap
+heap                    # Heap info
+bins                    # Show bins
+vis_heap_chunks         # Visualize heap
+
+# ELF info
+checksec                # Security features
+vmmap                   # Memory mappings
+elf                     # ELF header info
+got                     # GOT table
+plt                     # PLT table
+\end{lstlisting}
+
+\section*{Common pwndbg Shortcuts}
+\begin{lstlisting}
+# Navigation
+n / ni                  # Next / Next instruction
+s / si                  # Step / Step instruction
+c                       # Continue
+fin                     # Finish function
+
+# Views
+ctx                     # Context
+regs                    # Registers
+stack                   # Stack view
+code                    # Code/disassembly
+
+# Breakpoints
+b *main                 # Break at main
+b *0x08048400          # Break at address
+\end{lstlisting}
+
+\section*{Setting Values}
+\begin{lstlisting}
+# Set register
+set $eax = 0x41414141
+set $rip = 0x400000
+
+# Set memory
+set {int}0x08048400 = 0x90909090
+set {long}$rsp = 0xdeadbeef
+
+# Set string
+set {char[4]}0x8048400 = "AAAA"
+\end{lstlisting}
+
+\section*{Conditional Breakpoints}
+\begin{lstlisting}
+# Break with condition
+break *main if $eax == 0
+break vuln if *(int*)($esp+4) == 0x41
+
+# Commands on break
+break *vuln
+commands
+  x/10wx $esp
+  continue
+end
+\end{lstlisting}
+
+\section*{Working with Core Dumps}
+\begin{lstlisting}
+# Generate core dump
+ulimit -c unlimited     # Enable core dumps
+gdb ./binary core       # Load core dump
+
+# After crash
+bt                      # Backtrace
+info registers          # See crash state
+x/10wx $esp            # See stack
+\end{lstlisting}
+
+\section*{Scripting}
+\begin{lstlisting}
+# GDB script (commands.gdb)
+b *main
+commands
+  x/10i $eip
+  continue
+end
+run
+
+# Run script
+gdb -x commands.gdb ./binary
+
+# Python scripting
+python print("Hello from Python")
+python gdb.execute("info registers")
+\end{lstlisting}
+
+\section*{Useful Tricks}
+\begin{lstlisting}
+# Follow fork
+set follow-fork-mode child
+set follow-fork-mode parent
+
+# Disable ASLR
+set disable-randomization on
+
+# Show syscalls
+catch syscall
+catch syscall write
+
+# Layout (TUI mode)
+layout asm              # Assembly view
+layout regs             # Registers view
+layout split            # Split view
+Ctrl-x a                # Toggle TUI
+
+# Redirect output
+set logging on
+set logging file gdb.txt
+\end{lstlisting}
+
+\section*{Pattern Matching}
+\begin{lstlisting}
+# Generate pattern (pwndbg)
+cyclic 200
+pwndbg> cyclic 200
+
+# Find offset
+cyclic -l 0x6161616b   # From crash value
+cyclic -l kaaa         # From string
+
+# Or use pattern_create (GEF/peda)
+pattern create 200
+pattern offset 0x6161616b
+\end{lstlisting}
+
+\section*{Remote Debugging}
+\begin{lstlisting}
+# On remote machine
+gdbserver :1234 ./binary
+
+# On local machine
+gdb ./binary
+target remote host:1234
+\end{lstlisting}
+
+\section*{Essential .gdbinit}
+\begin{lstlisting}
+# ~/.gdbinit
+set disassembly-flavor intel
+set pagination off
+set follow-fork-mode child
+
+# Load pwndbg
+source ~/pwndbg/gdbinit.py
+
+# Custom aliases
+define hook-stop
+  info registers
+  x/10i $eip
+end
+\end{lstlisting}
+
+\section*{Quick Reference}
+\begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]
+    \item \texttt{r} - run program
+    \item \texttt{c} - continue execution
+    \item \texttt{n} - next line (step over)
+    \item \texttt{s} - step into function
+    \item \texttt{ni} - next instruction
+    \item \texttt{si} - step instruction
+    \item \texttt{b *addr} - breakpoint at address
+    \item \texttt{x/10wx \$esp} - examine stack
+    \item \texttt{i r} - info registers
+    \item \texttt{disas func} - disassemble function
+    \item \texttt{bt} - backtrace (call stack)
+    \item \texttt{vmmap} - memory mappings (pwndbg)
+    \item \texttt{checksec} - security features (pwndbg)
+    \item \texttt{cyclic 200} - pattern (pwndbg)
+    \item \texttt{telescope \$esp} - examine memory (pwndbg)
+\end{itemize}
+
+\vfill
+\columnbreak
+
+\end{multicols}
+
+\end{document}
