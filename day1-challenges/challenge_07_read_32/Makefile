@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -fno-stack-protector -no-pie -O0 -z noexecstack -Wno-stringop-overflow
+CFLAGS = -m32 -fno-stack-protector -no-pie -O0 -z noexecstack -Wno-stringop-overflow
 TARGET = vuln
 
 .PHONY: all clean
