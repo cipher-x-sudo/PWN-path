@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
+
 from pwn import *
 context.terminal = ["tmux", "splitw", "-h"]
-elf = context.binary = ELF("./main_patched")
-rop = ROP(elf)
-libc = elf.libc
+elf = context.binary = ELF("./vuln")
+# rop = ROP(elf)
+# libc = elf.libc
 # libc = ELF("./libc.so.6")
 # LEAVE_RET = rop.find_gadget(['leave', 'ret'])[0]
 # POP_RDI = rop.find_gadget(['pop rdi', 'ret'])[0]
@@ -10,10 +12,10 @@ libc = elf.libc
 # RET = rop.find_gadget(['ret'])[0]
 
 p = remote(sys.argv[1], int(sys.argv[2])
-    ) if args.REMOTE else process(["./ld-linux-x86-64.so.2", "--library-path", ".", "./main_patched"], aslr=True)
+    ) if args.REMOTE else process("./vuln", aslr=True)
 
 if args.GDB: gdb.attach(p, """
-    brva 0x469b0
+    break *gets
     """)
 
 encode = lambda e: e if type(e) == bytes else str(e).encode()
@@ -28,3 +30,6 @@ ru  = lambda d: p.recvuntil(d)
 rl  = lambda: p.recvline()
 rla = lambda m: p.recvlineafter(m)
 delta = lambda x, y: (0xffffffffffffffff - x) + y
+
+
+p.interactive()
