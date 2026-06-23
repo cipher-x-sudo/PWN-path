@@ -1,0 +1,13 @@
+# Build outputs
+labs/phase1-stack-basics/stack_frames
+labs/phase2-ret2win/ret2win
+
+# Debugger/runtime artifacts
+core
+core.*
+.gdb_history
+
+# Python local state
+__pycache__/
+*.pyc
+
