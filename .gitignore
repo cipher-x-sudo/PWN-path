@@ -11,3 +11,5 @@ core.*
 __pycache__/
 *.pyc
 
+# Local IDE/history state
+.specstory/
