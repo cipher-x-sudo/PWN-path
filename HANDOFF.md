@@ -9,8 +9,8 @@ short, direct explanations and local labs.
 
 - Branch: `main`
 - Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
-- Last known push result: `Everything up-to-date`
-- Working tree now has uncommitted changes for the new ret2win-argument lab.
+- Last push result: ret2win-argument completion pushed to `origin/main`.
+- Working tree should be clean after push.
 - `.specstory/` is ignored and no longer tracked.
 - Reminder automation created:
   - id: `practice-pwn-daily`
@@ -103,11 +103,23 @@ Important facts:
 - target: call `win(0xdeadbeef)`
 - argument register on Linux x86_64: `rdi`
 - included helper gadget: naked `gadget()` with `pop rdi; ret`
+- user completed the lab and understood the logic:
+  - overflow to saved RIP
+  - return into `pop rdi; ret`
+  - put `0xdeadbeef` into `rdi`
+  - return into `win`
 
 Exploit shape:
 
 ```text
 72 bytes padding + pop_rdi_ret + 0xdeadbeef + win
+```
+
+Current exploit uses pwntools ROP gadget lookup:
+
+```python
+rop = ROP(elf)
+pop_rdi = rop.find_gadget(["pop rdi", "ret"])[0]
 ```
 
 Verified success output:
@@ -167,12 +179,13 @@ git push origin main
    - offset
    - target address
    - why exploit works
-3. Walk through the new ret2win-argument lab with the user.
-   - Explain `rdi` as first argument.
-   - Explain `pop rdi; ret`:
-     - `pop rdi` takes next stack value into `rdi`
-     - `ret` jumps to the next stack value
-   - Ask user to inspect the chain in GDB before giving more advanced answers.
+3. Review the completed ret2win-argument lab with the user.
+   - The user has already solved it.
+   - Do a short checkpoint review instead of re-teaching from scratch.
+   - Ask them to explain:
+     - why `rdi` matters
+     - what `pop rdi` takes from the stack
+     - what the following `ret` jumps to
    - Teach 16-byte stack alignment later if a crash requires it.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
