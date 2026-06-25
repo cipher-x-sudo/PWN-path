@@ -35,6 +35,10 @@ short, direct explanations and local labs.
   - keep answers short and direct
   - explain instruction by instruction
   - guide logic instead of dumping full answers
+- Added lab creation rule to `AGENTS.md`:
+  - new labs must copy `templates/exploit.py` as the starter exploit
+  - do not deliver completed exploit chains in new lab starter files
+  - private verification is allowed only through temporary scripts/commands not saved in the repo
 
 ## User Progress
 

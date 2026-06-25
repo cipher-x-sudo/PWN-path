@@ -13,3 +13,11 @@
 - Avoid extra theory unless the user asks for it.
 - Explain assembly and memory in small chunks: instruction, meaning, why it matters.
 - Prefer guiding questions and logic over giving full challenge answers.
+
+## Lab Creation Rules
+
+- When creating a new lab, copy `templates/exploit.py` into the lab as the starter exploit.
+- Do not write the final exploit chain into the delivered starter exploit.
+- Leave clear TODOs or placeholders for the user to fill in.
+- If verification needs a solved exploit, test it privately with a temporary script or command that is not saved in the repo.
+- The delivered lab should contain the challenge, build files, README hints, and an editable template-based exploit, not the completed solution.
