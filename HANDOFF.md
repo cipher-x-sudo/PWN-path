@@ -9,9 +9,13 @@ short, direct explanations and local labs.
 
 - Branch: `main`
 - Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
-- Last push result: `Everything up-to-date`
-- Working tree was clean after push.
+- Last known push result: `Everything up-to-date`
+- Working tree now has uncommitted changes for the new ret2win-argument lab.
 - `.specstory/` is ignored and no longer tracked.
+- Reminder automation created:
+  - id: `practice-pwn-daily`
+  - schedule: daily at 11:00 PM user local time
+  - prompt: remind user to practice current pwn lab, short and direct
 
 ## Repo Setup Completed
 
@@ -25,6 +29,7 @@ short, direct explanations and local labs.
 - Added labs:
   - `labs/phase1-stack-basics`
   - `labs/phase2-ret2win`
+  - `labs/phase2-ret2win-arg`
 - Added user learning style to `AGENTS.md`:
   - keep answers short and direct
   - explain instruction by instruction
@@ -85,6 +90,41 @@ local{ret2win_control_flow}
 
 `Got EOF while reading in interactive` is expected because `win()` exits.
 
+### Phase 2: ret2win With One Argument
+
+Added lab: `labs/phase2-ret2win-arg`.
+
+Important facts:
+
+- vulnerable function: `vuln`
+- buffer: `char buf[64]`
+- bug: `read(STDIN_FILENO, buf, 200)`
+- offset to RIP: `72`
+- target: call `win(0xdeadbeef)`
+- argument register on Linux x86_64: `rdi`
+- included helper gadget: naked `gadget()` with `pop rdi; ret`
+
+Exploit shape:
+
+```text
+72 bytes padding + pop_rdi_ret + 0xdeadbeef + win
+```
+
+Verified success output:
+
+```text
+local{ret2win_argument_control}
+```
+
+Observed current addresses after WSL build:
+
+```text
+pop rdi; ret = 0x4011b6
+win = 0x4011bf
+```
+
+These may change if source/compiler flags change.
+
 ## Commands/Checks Run
 
 ```bash
@@ -92,6 +132,8 @@ make
 checksec ./ret2win
 nm -an ./ret2win
 python3 exploit.py
+wsl bash -lc 'cd /mnt/d/mypwm/labs/phase2-ret2win-arg && make clean && make && python3 exploit.py'
+wsl bash -lc 'cd /mnt/d/mypwm/labs/phase2-ret2win-arg && checksec ./ret2win_arg'
 git push origin main
 ```
 
@@ -105,6 +147,18 @@ git push origin main
 - not stripped
 - debug info present
 
+`checksec ./ret2win_arg` showed:
+
+- amd64
+- No canary
+- NX enabled
+- No PIE
+- Partial RELRO
+- SHSTK enabled
+- IBT enabled
+- not stripped
+- debug info present
+
 ## Next Steps
 
 1. Do not require writeups for every solved lab.
@@ -113,10 +167,13 @@ git push origin main
    - offset
    - target address
    - why exploit works
-3. Add or solve the next lab: ret2win with one argument.
-   - Goal: call `win(0xdeadbeef)`
-   - Teach `pop rdi; ret`
-   - Teach 16-byte stack alignment if needed
+3. Walk through the new ret2win-argument lab with the user.
+   - Explain `rdi` as first argument.
+   - Explain `pop rdi; ret`:
+     - `pop rdi` takes next stack value into `rdi`
+     - `ret` jumps to the next stack value
+   - Ask user to inspect the chain in GDB before giving more advanced answers.
+   - Teach 16-byte stack alignment later if a crash requires it.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
    - ask the user to inspect values in GDB

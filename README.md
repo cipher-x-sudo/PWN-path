@@ -28,6 +28,10 @@ make
 cd ../phase2-ret2win
 make
 checksec ./ret2win
+
+cd ../phase2-ret2win-arg
+make
+checksec ./ret2win_arg
 ```
 
 The labs are intentionally simple. The point is to learn the workflow:

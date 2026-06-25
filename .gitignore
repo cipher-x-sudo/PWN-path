@@ -1,6 +1,7 @@
 # Build outputs
 labs/phase1-stack-basics/stack_frames
 labs/phase2-ret2win/ret2win
+labs/phase2-ret2win-arg/ret2win_arg
 
 # Debugger/runtime artifacts
 core
