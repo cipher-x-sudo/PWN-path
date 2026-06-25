@@ -10,7 +10,7 @@ short, direct explanations and local labs.
 - Branch: `main`
 - Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
 - Last push result: ret2win-argument completion pushed to `origin/main`.
-- Working tree should be clean after push.
+- Working tree has the new unsolved two-argument ret2win lab unless it has been committed after this note.
 - `.specstory/` is ignored and no longer tracked.
 - Reminder automation created:
   - id: `practice-pwn-daily`
@@ -30,6 +30,7 @@ short, direct explanations and local labs.
   - `labs/phase1-stack-basics`
   - `labs/phase2-ret2win`
   - `labs/phase2-ret2win-arg`
+  - `labs/phase2-ret2win-2args`
 - Added user learning style to `AGENTS.md`:
   - keep answers short and direct
   - explain instruction by instruction
@@ -137,6 +138,38 @@ win = 0x4011bf
 
 These may change if source/compiler flags change.
 
+### Phase 2: ret2win With Two Arguments
+
+Added lab: `labs/phase2-ret2win-2args`.
+
+Important facts:
+
+- vulnerable function: `vuln`
+- buffer: `char buf[64]`
+- bug: `read(STDIN_FILENO, buf, 200)`
+- expected offset to RIP: `72`
+- target: call `win(0xdeadbeef, 0xcafebabe)`
+- first argument register: `rdi`
+- second argument register: `rsi`
+- included helper gadgets:
+  - `gadget_rdi()` with `pop rdi; ret`
+  - `gadget_rsi()` with `pop rsi; ret`
+- starter exploit leaves the payload chain as a TODO so the user can solve it.
+
+Intended exploit shape:
+
+```text
+72 bytes padding + pop_rdi_ret + 0xdeadbeef + pop_rsi_ret + 0xcafebabe + win
+```
+
+Verified with a temporary one-off payload, not written into the lab exploit.
+
+Observed success output:
+
+```text
+local{ret2win_two_argument_control}
+```
+
 ## Commands/Checks Run
 
 ```bash
@@ -146,6 +179,7 @@ nm -an ./ret2win
 python3 exploit.py
 wsl bash -lc 'cd /mnt/d/mypwm/labs/phase2-ret2win-arg && make clean && make && python3 exploit.py'
 wsl bash -lc 'cd /mnt/d/mypwm/labs/phase2-ret2win-arg && checksec ./ret2win_arg'
+wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-ret2win-2args && make clean && make'
 git push origin main
 ```
 
@@ -179,13 +213,13 @@ git push origin main
    - offset
    - target address
    - why exploit works
-3. Review the completed ret2win-argument lab with the user.
-   - The user has already solved it.
-   - Do a short checkpoint review instead of re-teaching from scratch.
-   - Ask them to explain:
-     - why `rdi` matters
-     - what `pop rdi` takes from the stack
-     - what the following `ret` jumps to
+3. Have the user solve `labs/phase2-ret2win-2args`.
+   - Ask them to fill the TODO in `exploit.py`.
+   - Keep hints short:
+     - first argument goes in `rdi`
+     - second argument goes in `rsi`
+     - each gadget consumes the next stack value
+   - Avoid giving the final payload unless they ask for it directly.
    - Teach 16-byte stack alignment later if a crash requires it.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
