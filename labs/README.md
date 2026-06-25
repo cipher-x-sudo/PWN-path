@@ -9,6 +9,7 @@ workflow and exploit construction in a controlled environment.
 2. `phase2-ret2win`
 3. `phase2-ret2win-arg`
 4. `phase2-ret2win-2args`
+5. `phase2-ret2win-3args`
 
 More advanced labs can be added as you progress:
 
