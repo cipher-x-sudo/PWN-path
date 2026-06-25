@@ -9,7 +9,7 @@ short, direct explanations and local labs.
 
 - Branch: `main`
 - Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
-- Last push result: ret2win three-argument completion pushed to `origin/main`.
+- Last push result: cyclic-offset lab completion pushed to `origin/main`.
 - Working tree should be clean after push.
 - `.specstory/` is ignored and no longer tracked.
 - Reminder automation created:
@@ -32,6 +32,7 @@ short, direct explanations and local labs.
   - `labs/phase2-ret2win-arg`
   - `labs/phase2-ret2win-2args`
   - `labs/phase2-ret2win-3args`
+  - `labs/phase2-cyclic-offset`
 - Added user learning style to `AGENTS.md`:
   - keep answers short and direct
   - explain instruction by instruction
@@ -221,6 +222,33 @@ Observed success output:
 local{ret2win_three_argument_control}
 ```
 
+### Phase 2: Cyclic Offset Discovery
+
+Added lab: `labs/phase2-cyclic-offset`.
+
+Important facts:
+
+- vulnerable function: `vuln`
+- source uses a `struct request` so the offset is not the simple `64 + 8` pattern
+- bug: `read(STDIN_FILENO, req.input, 220)` into `req.input`
+- target: redirect execution to `win()`
+- starter exploit was copied from `templates/exploit.py` and originally contained TODOs only, per the lab creation rule
+- user completed the lab and filled the exploit
+- lesson: crash with `cyclic`, inspect `$rsp` when crash happens at `ret`, then use `cyclic -l`
+
+Cyclic result:
+
+- crash occurred at the `ret` in `vuln`
+- stack value at `$rsp`: `0x7a61616179616161`
+- `cyclic_find(p64(value))` found offset `93`
+- exploit payload: `93` bytes padding + `win`
+
+Observed success output:
+
+```text
+local{cyclic_offset_found}
+```
+
 ## Commands/Checks Run
 
 ```bash
@@ -234,6 +262,8 @@ wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-ret2win-2args && make clean && make'
 wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-ret2win-2args && make clean && make && python3 exploit.py'
 wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-ret2win-3args && make clean && make'
 wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-ret2win-3args && make clean && make && python3 exploit.py'
+wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-cyclic-offset && make clean && make'
+wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-cyclic-offset && make clean && make && python3 exploit.py'
 git push origin main
 ```
 
@@ -267,13 +297,13 @@ git push origin main
    - offset
    - target address
    - why exploit works
-3. Review the completed three-argument ret2win lab with the user.
+3. Review the completed cyclic-offset lab with the user.
    - Ask them to explain:
-     - why `rdi` gets `0xdeadbeef`
-     - why `rsi` gets `0xcafebabe`
-     - why `rdx` gets `0x13371337`
-     - how each `ret` moves to the next gadget/function
-   - Next lab should teach cyclic offset discovery more formally.
+     - why `rip` still pointed at `ret`
+     - why `$rsp` held the next jump target
+     - how `cyclic -l` produced offset `93`
+     - why the final payload is `padding + win`
+   - Next lab should introduce stack alignment or a first ret2libc-style leak.
    - Teach 16-byte stack alignment later if a crash requires it.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
