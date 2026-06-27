@@ -10,6 +10,7 @@ short, direct explanations and local labs.
 - Branch: `main`
 - Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
 - Last push result: cyclic-offset lab completion pushed to `origin/main`.
+- Current lab: `labs/phase2-stack-alignment` (created; awaiting user solve).
 - Working tree should be clean after push.
 - `.specstory/` is ignored and no longer tracked.
 - Reminder automation created:
@@ -33,6 +34,7 @@ short, direct explanations and local labs.
   - `labs/phase2-ret2win-2args`
   - `labs/phase2-ret2win-3args`
   - `labs/phase2-cyclic-offset`
+  - `labs/phase2-stack-alignment`
 - Added user learning style to `AGENTS.md`:
   - keep answers short and direct
   - explain instruction by instruction
@@ -249,6 +251,20 @@ Observed success output:
 local{cyclic_offset_found}
 ```
 
+### Phase 2: Stack Alignment
+
+Added lab: `labs/phase2-stack-alignment`.
+
+Lab intent:
+
+- first try a direct return to `win()`
+- diagnose the deterministic `movaps` alignment crash
+- use one plain `ret` gadget to move `rsp` by 8 bytes
+- reach `win()` with the System V AMD64 stack alignment restored
+
+The delivered `exploit.py` is copied from the template and contains TODOs only.
+The completed exploit chain must not be added before the user solves the lab.
+
 ## Commands/Checks Run
 
 ```bash
@@ -297,14 +313,12 @@ git push origin main
    - offset
    - target address
    - why exploit works
-3. Review the completed cyclic-offset lab with the user.
-   - Ask them to explain:
-     - why `rip` still pointed at `ret`
-     - why `$rsp` held the next jump target
-     - how `cyclic -l` produced offset `93`
-     - why the final payload is `padding + win`
-   - Next lab should introduce stack alignment or a first ret2libc-style leak.
-   - Teach 16-byte stack alignment later if a crash requires it.
+3. Guide the user through `phase2-stack-alignment` without giving the completed
+   exploit chain.
+   - Have them try a direct return to `win()` first.
+   - Inspect the crash at `movaps` and evaluate `$rsp & 0xf`.
+   - Ask what one plain `ret` does to `rsp`.
+   - After completion, continue to a first ret2libc-style leak.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
    - ask the user to inspect values in GDB

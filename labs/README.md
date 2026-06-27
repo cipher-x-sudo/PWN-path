@@ -11,6 +11,7 @@ workflow and exploit construction in a controlled environment.
 4. `phase2-ret2win-2args`
 5. `phase2-ret2win-3args`
 6. `phase2-cyclic-offset`
+7. `phase2-stack-alignment`
 
 More advanced labs can be added as you progress:
 

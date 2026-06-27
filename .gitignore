@@ -4,6 +4,7 @@ labs/phase2-ret2win/ret2win
 labs/phase2-ret2win-arg/ret2win_arg
 labs/phase2-ret2win-3args/ret2win_3args
 labs/phase2-cyclic-offset/cyclic_offset
+labs/phase2-stack-alignment/stack_alignment
 
 # Debugger/runtime artifacts
 core
