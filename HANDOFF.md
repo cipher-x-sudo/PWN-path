@@ -10,8 +10,8 @@ short, direct explanations and local labs.
 - Branch: `main`
 - Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
 - Last push result: cyclic-offset lab completion pushed to `origin/main`.
-- Current lab: `labs/phase2-stack-alignment` (created; awaiting user solve).
-- Working tree should be clean after push.
+- Current lab: `labs/phase2-stack-alignment`.
+- Working tree is clean at the time of this handoff.
 - `.specstory/` is ignored and no longer tracked.
 - Reminder automation created:
   - id: `practice-pwn-daily`
@@ -265,6 +265,25 @@ Lab intent:
 The delivered `exploit.py` is copied from the template and contains TODOs only.
 The completed exploit chain must not be added before the user solves the lab.
 
+Current user understanding:
+
+- user found/used the normal overflow offset idea: `64` byte buffer + `8` saved
+  `rbp` = `72`
+- user understands that a plain `ret` gadget does not set an argument or call a
+  function; it only consumes one 8-byte stack slot and makes `rsp = rsp + 8`
+- current explanation focus is stack alignment:
+  - direct chain: `padding -> win`
+  - fixed chain idea: `padding -> ret gadget -> win`
+  - the extra `ret` is needed in this lab because `win()` calls
+    `alignment_check()`, which uses `movaps`
+  - `movaps` crashes if the destination address is not 16-byte aligned
+- keep the explanation very basic:
+  - `rsp` is the current top of stack
+  - `rbp` is the stable marker for the current function's stack frame
+  - `ret` reads the address at `[rsp]`, jumps there, then moves `rsp` forward by
+    8 bytes
+  - the extra `ret` flips the alignment so `movaps` can run
+
 ## Commands/Checks Run
 
 ```bash
@@ -315,10 +334,12 @@ git push origin main
    - why exploit works
 3. Guide the user through `phase2-stack-alignment` without giving the completed
    exploit chain.
-   - Have them try a direct return to `win()` first.
-   - Inspect the crash at `movaps` and evaluate `$rsp & 0xf`.
-   - Ask what one plain `ret` does to `rsp`.
-   - After completion, continue to a first ret2libc-style leak.
+   - If they are still confused, explain with only two stack snapshots:
+     direct `padding -> win` versus `padding -> ret -> win`.
+   - Keep repeating the key point: one extra `ret` moves `rsp` by exactly 8
+     bytes, and that is enough to make the `movaps` address 16-byte aligned.
+   - After they can explain this back, mark the lab complete and continue to a
+     first ret2libc-style leak.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
    - ask the user to inspect values in GDB
