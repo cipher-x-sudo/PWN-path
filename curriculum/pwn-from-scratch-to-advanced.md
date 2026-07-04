@@ -53,6 +53,8 @@ Learn:
 - offset discovery with cyclic patterns
 - return address control
 - ret2win
+- stack alignment during ROP
+- compiler-generated SSE instructions such as `movaps`
 - shellcode basics when NX is disabled
 - ret2libc
 - ROP chains
@@ -68,9 +70,11 @@ Practice platforms:
 - picoCTF binary exploitation
 - beginner/intermediate CTF pwn challenges
 
-Local lab:
+Local labs:
 
 - `labs/phase2-ret2win`
+- `labs/phase2-stack-alignment`
+- `labs/phase2-stack-alignment-sse`
 
 Exit criteria:
 
