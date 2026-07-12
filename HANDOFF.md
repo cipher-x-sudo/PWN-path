@@ -9,10 +9,9 @@ short, direct explanations and local labs.
 
 - Branch: `main`
 - Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
-- Last push result: stack-alignment handoff pushed to `origin/main`.
-- Current lab: `labs/phase2-stack-alignment-sse` (created; awaiting user solve).
-- Working tree contains the uncommitted Lab 8 additions at the time of this
-  handoff.
+- Last push result: Lab 8 completion handoff pushed to `origin/main`.
+- Current lab status: `labs/phase2-stack-alignment-sse` completed by user.
+- Next lab direction: start Phase 2 ret2libc basics.
 - `.specstory/` is ignored and no longer tracked.
 - Reminder automation created:
   - id: `practice-pwn-daily`
@@ -307,13 +306,15 @@ Important source behavior:
 - `win()` then prints `local{real_stack_alignment}`
 
 The original `exploit.py` was a fresh copy of `templates/exploit.py` with only
-the binary name and TODO guidance changed. The user has now started solving it:
+the binary name and TODO guidance changed. The user completed the lab:
 
 - found offset `72`
 - resolved `win` with `elf.symbols["win"]`
-- added `RET_GADGET` to the payload as a placeholder
-- has not defined `RET_GADGET` yet, so the current exploit is intentionally
-  incomplete and must be continued rather than replaced
+- found a plain `ret` gadget using pwntools ROP lookup
+- used the chain `72 bytes padding -> ret gadget -> win`
+- observed successful output:
+  - `Verification: 1`
+  - `local{real_stack_alignment}`
 
 Latest GDB progress:
 
@@ -325,8 +326,8 @@ Latest GDB progress:
 - pwndbg required casting register values before alignment arithmetic:
   - `p/x ((unsigned long)$rsp & 0xf)`
   - `p/x (((unsigned long)$rbp - 0x10) & 0xf)`
-- next step is to define the plain `ret` gadget, rerun, and confirm the actual
-  destination alignment changes from `8` to `0`
+- user verified the corrected exploit works; keep future explanations focused
+  on why the extra `ret` consumes 8 bytes and fixes `movaps` alignment
 
 Private verification passed:
 
@@ -386,16 +387,12 @@ git push origin main
    - offset
    - target address
    - why exploit works
-3. Guide the user through `phase2-stack-alignment-sse` without filling in its
-   starter exploit.
-   - First explain `__m128`, `_mm_set_ps`, the aligned local array, and
-     `_mm_store_ps` in short pieces.
-   - Have them disassemble `prepare_reward` and identify `movaps` themselves.
-   - The direct-run crash has been found; next compare the casted alignment
-     expressions in the corrected run.
-   - Help them replace the undefined `RET_GADGET` placeholder with their own
-     pwntools gadget lookup, then verify the flag.
-   - After completion, continue to a first ret2libc-style leak.
+3. Start the next lab: first ret2libc-style leak.
+   - Teach the flow as `leak address -> calculate libc base -> call system`.
+   - Keep it smaller than a full shell at first if needed: leak one GOT entry
+     and explain why ASLR makes the leak useful.
+   - New lab starter must still be copied from `templates/exploit.py` and must
+     not contain the completed exploit chain.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
    - ask the user to inspect values in GDB
