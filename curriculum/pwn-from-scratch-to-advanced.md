@@ -73,8 +73,13 @@ Practice platforms:
 Local labs:
 
 - `labs/phase2-ret2win`
+- `labs/phase2-ret2win-arg`
+- `labs/phase2-ret2win-2args`
+- `labs/phase2-ret2win-3args`
+- `labs/phase2-cyclic-offset`
 - `labs/phase2-stack-alignment`
 - `labs/phase2-stack-alignment-sse`
+- `labs/phase2-ret2libc-leak`
 
 Exit criteria:
 

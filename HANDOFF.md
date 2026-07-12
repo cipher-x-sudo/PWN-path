@@ -8,10 +8,10 @@ short, direct explanations and local labs.
 ## Current State
 
 - Branch: `main`
-- Remote: `origin https://github.com/cipher-x-sudo/mypwm.git`
-- Last push result: Lab 8 completion handoff pushed to `origin/main`.
-- Current lab status: `labs/phase2-stack-alignment-sse` completed by user.
-- Next lab direction: start Phase 2 ret2libc basics.
+- Remote: `origin https://github.com/cipher-x-sudo/PWN-path.git`
+- Last push result: Lab 9 ret2libc leak lab pushed to `origin/main`.
+- Current lab: `labs/phase2-ret2libc-leak` (created; awaiting user solve).
+- Previous lab status: `labs/phase2-stack-alignment-sse` completed by user.
 - `.specstory/` is ignored and no longer tracked.
 - Reminder automation created:
   - id: `practice-pwn-daily`
@@ -36,6 +36,7 @@ short, direct explanations and local labs.
   - `labs/phase2-cyclic-offset`
   - `labs/phase2-stack-alignment`
   - `labs/phase2-stack-alignment-sse`
+  - `labs/phase2-ret2libc-leak`
 - Added user learning style to `AGENTS.md`:
   - keep answers short and direct
   - explain instruction by instruction
@@ -337,6 +338,58 @@ Private verification passed:
 - protections: Partial RELRO, no canary, NX enabled, no PIE, not stripped,
   debug info present
 
+### Phase 2: ret2libc Leak
+
+Added Lab 9: `labs/phase2-ret2libc-leak`.
+
+Lab intent:
+
+- introduce ret2libc as the next step after ret2win and stack alignment
+- teach why NX pushes the exploit toward existing libc code instead of stack
+  shellcode
+- teach the two-stage pattern:
+  - stage 1: leak `puts` from `puts@got` by calling `puts@plt`
+  - return to `vuln` for a second payload
+  - stage 2: calculate libc base and call `system("/bin/sh")`
+- keep stack alignment in mind by using a plain `ret` before `system` if needed
+
+Added files:
+
+- `labs/phase2-ret2libc-leak/ret2libc_leak.c`
+- `labs/phase2-ret2libc-leak/Makefile`
+- `labs/phase2-ret2libc-leak/README.md`
+- `labs/phase2-ret2libc-leak/exploit.py`
+
+Important source behavior:
+
+- vulnerable function: `vuln`
+- buffer: `char buf[64]`
+- bug: `read(STDIN_FILENO, buf, 240)`
+- expected saved RIP offset: `72`
+- helper gadgets:
+  - `gadget_pop_rdi()` gives `pop rdi; ret`
+  - `gadget_ret()` gives a plain `ret`
+- binary calls `puts` before input, so `puts@got` is resolved before the leak
+
+Delivered exploit state:
+
+- copied from `templates/exploit.py`
+- changed binary name to `./ret2libc_leak`
+- added TODO guidance only
+- no offset, addresses, libc calculations, or completed payload chain included
+
+Private verification passed:
+
+- `make clean && make` built successfully
+- `checksec ./ret2libc_leak` showed Partial RELRO, no canary, NX enabled,
+  no PIE, not stripped, debug info present
+- `readelf -r ./ret2libc_leak | grep puts` confirmed a `puts` GOT relocation
+- temporary unsaved exploit verified:
+  - stage 1 leaked `puts`
+  - stage 2 calculated libc base
+  - `system("/bin/sh")` executed `echo RET2LIBC_OK`
+- generated binary was removed with `make clean`
+
 ## Commands/Checks Run
 
 ```bash
@@ -354,6 +407,8 @@ wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-cyclic-offset && make clean && make'
 wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-cyclic-offset && make clean && make && python3 exploit.py'
 wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-stack-alignment-sse && make clean && make'
 objdump -d -M intel ./stack_alignment_sse
+wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-ret2libc-leak && make clean && make && checksec ./ret2libc_leak'
+wsl bash -lc 'cd /mnt/e/mypwm/labs/phase2-ret2libc-leak && readelf -r ./ret2libc_leak | grep puts && make clean'
 git push origin main
 ```
 
@@ -387,12 +442,12 @@ git push origin main
    - offset
    - target address
    - why exploit works
-3. Start the next lab: first ret2libc-style leak.
-   - Teach the flow as `leak address -> calculate libc base -> call system`.
-   - Keep it smaller than a full shell at first if needed: leak one GOT entry
-     and explain why ASLR makes the leak useful.
-   - New lab starter must still be copied from `templates/exploit.py` and must
-     not contain the completed exploit chain.
+3. Guide the user through `phase2-ret2libc-leak`.
+   - First explain `puts@plt` vs `puts@got` in tiny pieces.
+   - Have the user build stage 1 only: leak `puts` and return to `vuln`.
+   - Then calculate libc base and only afterward build stage 2.
+   - Remind them that a plain `ret` before `system` may be needed for
+     alignment.
 4. Keep coaching style short/direct:
    - explain one instruction or idea at a time
    - ask the user to inspect values in GDB

@@ -13,11 +13,12 @@ workflow and exploit construction in a controlled environment.
 6. `phase2-cyclic-offset`
 7. `phase2-stack-alignment`
 8. `phase2-stack-alignment-sse`
+9. `phase2-ret2libc-leak`
 
 More advanced labs can be added as you progress:
 
 - format string leak/write
-- ret2libc
+- more ret2libc and ROP
 - tcache poisoning
 - UAF
 - stripped reversing challenge
